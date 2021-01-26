@@ -3,9 +3,7 @@ defmodule Anna.Repo.Migrations.CreateCampus do
 
   def change do
     create table(:campuses) do
-
       timestamps()
     end
-
   end
 end

@@ -5,6 +5,9 @@ defmodule Anna.GivingUnit do
   schema "giving_units" do
     field :name, :string
     field :campus_id, :id
+    field :age, :integer
+    field :age_band, :string
+    field :outside_id, :integer
 
     timestamps()
   end
