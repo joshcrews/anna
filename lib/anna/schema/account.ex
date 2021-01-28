@@ -1,16 +1,16 @@
-defmodule Anna.Fund do
+defmodule Anna.Account do
   use Ecto.Schema
   import Ecto.Changeset
 
-  schema "funds" do
+  schema "accounts" do
     field :name, :string
-
+    field :outside_id, :integer
     timestamps()
   end
 
   @doc false
-  def changeset(fund, attrs) do
-    fund
+  def changeset(account, attrs) do
+    account
     |> cast(attrs, [:name])
     |> validate_required([:name])
   end

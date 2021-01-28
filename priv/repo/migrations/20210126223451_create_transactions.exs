@@ -12,6 +12,10 @@ defmodule Anna.Repo.Migrations.CreateTransactions do
       add :campus_id, references(:campuses, on_delete: :nothing)
       add :fund_id, references(:funds, on_delete: :nothing)
       add :account_id, references(:accounts, on_delete: :nothing)
+      add :outside_id, :integer
+      add :datetime, :utc_datetime
+      add :date, :date
+      add :month, :date
 
       timestamps()
     end
@@ -21,5 +25,11 @@ defmodule Anna.Repo.Migrations.CreateTransactions do
     create index(:transactions, [:fund_id])
     create index(:transactions, [:source])
     create index(:transactions, [:payment_type])
+    create index(:transactions, [:account_id])
+    create index(:transactions, [:datetime])
+    create index(:transactions, [:date])
+    create index(:transactions, [:month])
+
+    create unique_index(:transactions, [:outside_id])
   end
 end

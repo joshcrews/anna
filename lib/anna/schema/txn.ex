@@ -8,9 +8,14 @@ defmodule Anna.Txn do
     field :payment_type, :string
     field :source, :string
     field :zipcode, :integer
-    field :giving_unit_id, :id
-    field :campus_id, :id
-
+    field :giving_unit_id, :integer
+    field :campus_id, :integer
+    field :fund_id, :integer
+    field :account_id, :integer
+    field :outside_id, :integer
+    field :datetime, :utc_datetime
+    field :date, :date
+    field :month, :date
     timestamps()
   end
 

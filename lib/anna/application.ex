@@ -9,6 +9,7 @@ defmodule Anna.Application do
     children = [
       # Start the Ecto repository
       Anna.Repo,
+      Anna.ReadOnlyRepo,
       # Start the Telemetry supervisor
       AnnaWeb.Telemetry,
       # Start the PubSub system

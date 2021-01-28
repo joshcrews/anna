@@ -1,20 +1,18 @@
-defmodule Anna.GivingUnit do
+defmodule Anna.Fund do
   use Ecto.Schema
   import Ecto.Changeset
 
-  schema "giving_units" do
+  schema "funds" do
     field :name, :string
-    field :campus_id, :id
-    field :age, :integer
-    field :age_band, :string
+    field :account_id, :integer
+    field :campus_id, :integer
     field :outside_id, :integer
-
     timestamps()
   end
 
   @doc false
-  def changeset(giving_unit, attrs) do
-    giving_unit
+  def changeset(fund, attrs) do
+    fund
     |> cast(attrs, [:name])
     |> validate_required([:name])
   end

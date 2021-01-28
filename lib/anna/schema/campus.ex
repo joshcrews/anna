@@ -4,6 +4,7 @@ defmodule Anna.Campus do
 
   schema "campuses" do
     field :name, :string
+    field :account_id, :integer
     timestamps()
   end
 
