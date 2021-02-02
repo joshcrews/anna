@@ -17,7 +17,7 @@ defmodule Anna.Importer do
     |> find_campus_funds()
     |> build_donations()
     |> build_txn_counts()
-    |> build_checks()
+    # |> build_checks()
     |> build_cash()
   end
 
@@ -122,16 +122,27 @@ defmodule Anna.Importer do
         Timex.compare(~D[2020-08-01], date) == 1 -> @percent_cash_during_covid
         true -> @percent_cash_post_covid
       end
+      |> IO.inspect(label: :by_volume)
 
-    percent_cashs = ceil(percent_cash_by_volume / @average_cash_amount_compared_check)
+    IO.inspect(date, label: :date)
 
-    cashs_to_make = ceil(online_count * percent_cashs)
+    percent_cashs =
+      (percent_cash_by_volume / @average_cash_amount_compared_check)
+      |> IO.inspect(label: :percents_cash)
+
+    IO.inspect(online_count, label: :online_count)
+
+    cashs_to_make = ceil(online_count * percent_cashs) |> IO.inspect(label: :cashs_to_make)
 
     params = Map.put(params, :date, date)
 
     Enum.each(0..cashs_to_make, fn _ ->
       create_cash_txn(params)
     end)
+  end
+
+  def build_cash_row(_, _) do
+    :noop
   end
 
   def create_cash_txn(params = %{date: date, account_id: account_id}) do
@@ -178,29 +189,7 @@ defmodule Anna.Importer do
     |> Repo.insert!()
   end
 
-  def build_cash_row(_, _) do
-    :noop
-  end
-
   def build_txn_counts(params) do
-    # donation_start_range =
-    #   from(txn in Anna.Txn,
-    #     where: txn.payment_type in ["card", "ach"],
-    #     limit: 1,
-    #     order_by: txn.date,
-    #     select: txn.date
-    #   )
-    #   |> Repo.one()
-
-    # donation_end_range =
-    #   from(txn in Anna.Txn,
-    #     where: txn.payment_type in ["card", "ach"],
-    #     limit: 1,
-    #     order_by: [desc: txn.date],
-    #     select: txn.date
-    #   )
-    #   |> Repo.one()
-
     sql = """
     select
     count(*) as total,
@@ -208,22 +197,15 @@ defmodule Anna.Importer do
     sum(case when payment_type = 'cash' then 1 else 0 end) as cash,
     t.date
     from transactions t
+    where t.source != 'recurring'
     group by t.date
+    order by 4 desc
     """
 
     %{rows: day_rows} = Ecto.Adapters.SQL.query!(Repo, sql)
 
     donation_count = from(txn in Anna.Txn, select: count(txn.id)) |> Repo.one()
 
-    # days = Timex.diff(donation_end_range, donation_start_range, :days)
-
-    # online_per_day = donation_count * 1.0 / (days * 1.0)
-    # checks_per_day = online_per_day * @percent_checks
-
-    # Map.put(params, :donation_start_range, donation_start_range)
-    # |> Map.put(:donation_end_range, donation_end_range)
-    # |> Map.put(:online_per_day, online_per_day)
-    # |> Map.put(:checks_per_day, checks_per_day)
     params
     |> Map.put(:donation_count, donation_count)
     |> Map.put(:day_rows, day_rows)
@@ -250,7 +232,8 @@ defmodule Anna.Importer do
       left_join: f in Sd.Fund,
       on: f.id == d.fund_id,
       where: d.account_id == 219,
-      where: d.created_at > ago(60, "day"),
+      where: d.created_at < ago(239, "day"),
+      where: d.created_at > ago(759, "day"),
       limit: 1,
       order_by: [desc: d.id],
       select: {cus, d}
@@ -266,8 +249,8 @@ defmodule Anna.Importer do
             find_or_create_giving_unit(%{cus: cus, campus_id: campus_id, account_id: account_id})
 
           payment_type = if d.payment_type == "card", do: "card", else: "ach"
-
-          [datetime, date, month] = get_dates(d)
+          d.created_at |> IO.inspect()
+          [datetime, date, month] = get_dates(d) |> IO.inspect()
 
           fund_id =
             if d.fund_id do
@@ -283,11 +266,13 @@ defmodule Anna.Importer do
               nil
             end
 
+          source = d.donation_type || "web"
+
           %Anna.Txn{
             age_of_giver: giving_unit.age,
             amount_cents: d.gross_amount,
             payment_type: payment_type,
-            source: d.donation_type,
+            source: source,
             zipcode: giving_unit.zipcode,
             giving_unit_id: giving_unit.id,
             campus_id: giving_unit.campus_id,
@@ -572,7 +557,7 @@ defmodule Anna.Importer do
 
   def get_dates(donation) do
     datetime_utc = DateTime.from_naive!(donation.created_at, "Etc/UTC")
-    timezone = Timex.Timezone.get("America/New_York", datetime_utc)
+    timezone = Timex.Timezone.get("America/New_York", Timex.now())
     # offset = Timex.Timezone.diff(Timex.now(), timezone) * -1
     # Timex.shift(copy_at, seconds: offset)
 

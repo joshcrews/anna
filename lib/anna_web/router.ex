@@ -16,7 +16,7 @@ defmodule AnnaWeb.Router do
   scope "/", AnnaWeb do
     pipe_through :browser
 
-    get "/", PageController, :index
+    get "/", DashboardController, :index
   end
 
   # Other scopes may use custom stacks.
