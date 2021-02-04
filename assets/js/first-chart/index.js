@@ -15,13 +15,14 @@ const store = createStore(
   initial_state,
   compose(
     applyMiddleware(thunk),
-    window.devToolsExtension ? window.devToolsExtension() : (f) => f
+    window.__REDUX_DEVTOOLS_EXTENSION__ ? window.__REDUX_DEVTOOLS_EXTENSION__() : (f) => f
   )
 );
 
 render(
   <Provider store={store}>
     <App />
+
   </Provider>,
   document.getElementById("first-chart-react")
 );
